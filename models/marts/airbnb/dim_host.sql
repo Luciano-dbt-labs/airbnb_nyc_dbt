@@ -1,20 +1,22 @@
-with distinct_hosts as (
+with host_name_counts as (
 
-    select distinct
+    select
         host_id,
-        host_name
+        host_name,
+        count(*) as name_occurrences
     from {{ ref('stg_airbnb_nyc__listings') }}
-    -- if the same host_id ever appeared with more than one host_name (shouldn't
-    -- happen, but just in case) we keep the most frequent one
-    qualify row_number() over (
-        partition by host_id
-        order by count(*) over (partition by host_id, host_name) desc
-    ) = 1
+    group by host_id, host_name
 
 )
 
+-- if the same host_id ever appeared with more than one host_name (shouldn't
+-- happen, but just in case) we keep the name that occurs most often
 select
     host_id,
     host_name
 
-from distinct_hosts
+from host_name_counts
+qualify row_number() over (
+    partition by host_id
+    order by name_occurrences desc
+) = 1
