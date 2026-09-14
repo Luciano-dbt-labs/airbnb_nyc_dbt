@@ -1,0 +1,49 @@
+version: 2
+
+models:
+  - name: stg_airbnb_nyc__listings
+    description: "One row per Airbnb listing, cleaned and typed, ready to be modeled in marts."
+    columns:
+      - name: listing_id
+        description: "Listing PK (original id from the CSV)."
+        tests:
+          - unique
+          - not_null
+
+      - name: host_id
+        description: "Host identifier."
+        tests:
+          - not_null
+
+      - name: neighbourhood_group
+        description: "One of the 5 boroughs of New York City."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Bronx', 'Brooklyn', 'Manhattan', 'Queens', 'Staten Island']
+
+      - name: neighbourhood
+        description: "Neighbourhood within the borough."
+        tests:
+          - not_null
+
+      - name: room_type
+        description: "Type of room offered."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Private room', 'Entire home/apt', 'Shared room']
+
+      - name: price
+        description: "Price per night in USD. Price = 0 rows are excluded in this model."
+        tests:
+          - not_null
+
+      - name: latitude
+        tests:
+          - not_null
+      - name: longitude
+        tests:
+          - not_null
