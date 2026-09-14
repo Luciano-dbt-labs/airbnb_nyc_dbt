@@ -1,0 +1,93 @@
+version: 2
+
+models:
+  - name: dim_room_type
+    description: "Dimension with the 3 available room types."
+    columns:
+      - name: room_type_id
+        tests:
+          - unique
+          - not_null
+      - name: room_type_name
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_neighbourhood_group
+    description: "Dimension with the 5 boroughs of New York City."
+    columns:
+      - name: neighbourhood_group_id
+        tests:
+          - unique
+          - not_null
+      - name: neighbourhood_group_name
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_neighbourhood
+    description: "Neighbourhood dimension, nested within each borough."
+    columns:
+      - name: neighbourhood_id
+        tests:
+          - unique
+          - not_null
+      - name: neighbourhood_name
+        tests:
+          - unique
+          - not_null
+      - name: neighbourhood_group_id
+        description: "FK to dim_neighbourhood_group."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_neighbourhood_group')
+                field: neighbourhood_group_id
+
+  - name: dim_host
+    description: "Host dimension."
+    columns:
+      - name: host_id
+        tests:
+          - unique
+          - not_null
+
+  - name: fct_listings
+    description: "Fact table: one row per Airbnb listing, with FKs resolved against the dimensions."
+    columns:
+      - name: listing_id
+        tests:
+          - unique
+          - not_null
+      - name: host_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_host')
+                field: host_id
+      - name: neighbourhood_group_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_neighbourhood_group')
+                field: neighbourhood_group_id
+      - name: neighbourhood_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_neighbourhood')
+                field: neighbourhood_id
+      - name: room_type_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_room_type')
+                field: room_type_id
+      - name: price
+        tests:
+          - not_null
