@@ -1,0 +1,18 @@
+version: 2
+
+sources:
+  - name: airbnb_nyc
+    database: my-test-project-446015
+    schema: airbnb_nyc
+    description: >
+      Raw Airbnb NYC 2019 dataset, loaded as a native table in BigQuery
+      from the original CSV file (AB_NYC_2019.csv).
+    tables:
+      - name: raw_airbnb_listings
+        description: "Raw table, one row per listing, exactly as it comes from the original CSV."
+        columns:
+          - name: id
+            description: "Unique identifier of the listing in the source system."
+            tests:
+              - unique
+              - not_null
