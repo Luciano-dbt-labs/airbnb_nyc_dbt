@@ -46,7 +46,10 @@ models:
                 field: neighbourhood_group_id
 
   - name: dim_host
-    description: "Host dimension."
+    description: >
+      Host dimension. Current-state view (always the latest known host_name
+      per host_id). Full change history is tracked separately in the
+      host_snapshot table (SCD2).
     columns:
       - name: host_id
         tests:
@@ -54,7 +57,10 @@ models:
           - not_null
 
   - name: fct_listings
-    description: "Fact table: one row per Airbnb listing, with FKs resolved against the dimensions."
+    description: >
+      Transactional fact table: one row per Airbnb listing, reflecting its
+      current known state. New listings get inserted; existing ones get
+      their measures updated in place on each load.
     columns:
       - name: listing_id
         tests:

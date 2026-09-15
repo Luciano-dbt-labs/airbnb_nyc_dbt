@@ -1,3 +1,15 @@
+{{
+    config(
+        materialized='incremental',
+        unique_key='listing_id'
+    )
+}}
+
+-- transactional fact table: one row per listing, reflecting its current
+-- known state. New listing_ids get inserted; existing ones get their
+-- measures updated in place (price, reviews, availability, etc. always
+-- reflect the latest load). No historical trail of prior attribute
+-- values is kept here -- that's a deliberate trade-off for simplicity.
 with listings as (
 
     select * from {{ ref('stg_airbnb_nyc__listings') }}
@@ -16,7 +28,7 @@ neighbourhoods as (
     select * from {{ ref('dim_neighbourhood') }}
 ),
 
-final as (
+current_state as (
 
     select
         l.listing_id,
@@ -42,4 +54,21 @@ final as (
 
 )
 
-select * from final
+select
+    c.*,
+
+    {% if is_incremental() %}
+    -- preserve the original insert timestamp for listings that already
+    -- exist; only brand-new listing_ids get a fresh inserted_at
+    coalesce(e.inserted_at, current_datetime('America/New_York')) as inserted_at,
+    {% else %}
+    current_datetime('America/New_York') as inserted_at,
+    {% endif %}
+
+    -- refreshed every run this row is touched (insert or update)
+    current_datetime('America/New_York') as updated_at
+
+from current_state c
+{% if is_incremental() %}
+left join {{ this }} e on c.listing_id = e.listing_id
+{% endif %}
