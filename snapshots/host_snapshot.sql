@@ -6,7 +6,7 @@
         unique_key='host_id',
         strategy='check',
         check_cols=['host_name'],
-        invalidate_hard_deletes=true,
+        hard_deletes='new_record',
     )
 }}
 
